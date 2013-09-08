@@ -164,7 +164,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
             Name (FSUM, Zero)                 // Current sum of entries in buffer
             
             /* 
-             * Calculate average temperature reading of CPU Proximity from 16 iterrations
+             * Calculate average temperature reading of CPU Heatsink from 16 iterrations
              * Originally coded for HP ProBook fan control override via custom thermal table
              * 
              * Calculus method courtesy of RehabMan 
@@ -237,7 +237,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                     If (LAnd (LGreaterEqual (Local0, 0x40), LEqual (Local2, Zero))) // If avg temp is higher than 64C and Fan RPM high order is 0 (Fan is Off)
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
-                        Store (One, ^^EC0.TCTL)      // Set Fan Mode as Manual
+                        Store (One, ^^EC0.TCTL)      // Set Fan Mode as Automatic
                         Release (^^EC0.MUT0)         // Release EC Lock
                     }
                 }
