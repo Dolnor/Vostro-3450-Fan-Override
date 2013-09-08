@@ -154,6 +154,18 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
         Device (PLLD)
         {
             Name (_HID, EisaId ("PLL0000"))   // ACPI Polling Device
+            
+            /* Define settings for ACPI method polling */
+            
+            Name (INVL, 0x3E8)            // Set Polling interval 1sec
+            Name (TOUT, 0x00)             // Set Polling timeout  0sec (continuous polling)
+            Name (LOGG, 0x00)             // Disable Console logging of values returned by methods
+            Name (LIST, Package (0x02)    // Define methods for ACPI polling
+            {
+                "TAVG", 
+                "FCTL"
+            })
+            
             Name (FHST, Buffer (0x10)         // CPU Heatsink temp history
             {
                 /* 0000 */    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -225,7 +237,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                         Release (^^EC0.MUT0)         // Release EC Lock
                     }
                     
-                    If (LAnd (LLessEqual (Local0, 0x33), LEqual (Local2, Zero))) // If avg temp is below 51C and Fan RPM high order is 0 (Fan went Off)
+                    If (LAnd (LLessEqual (Local0, 0x33), LEqual (Local2, Zero))) // If avg temp is below 52C and Fan RPM high order is 0 (Fan went Off)
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
                         Store (Zero, ^^EC0.TCTL)     // Set Fan Mode as Manual
