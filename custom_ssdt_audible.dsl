@@ -256,8 +256,8 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
 							Store (Zero, ^^EC0.FLVL)     // Set Fan Level to 0 to make Fan drop speed gradually
 							Release (^^EC0.MUT0)         // Release EC Lock
 						}
-                    
-						If (LAnd (LLessEqual (Local0, 0x34), LLessEqual(Local2, 0xBB8))) // If avg temp is below 52C and Fan RPM is lower than 3000 RPM
+                          // If avg temp is below 52C and Fan RPM is lower than 3000 RPM and not 0 RPM
+						If (LAnd(LNotEqual (Local2, 0x00), LAnd (LLessEqual (Local0, 0x34), LLessEqual(Local2, 0xBB8)))) 
 						{
 							Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
 							Store (Zero, ^^EC0.TCTL)     // Set Fan Mode as Manual
