@@ -1,0 +1,19 @@
+60c60
+<                 if (floatValue) {
+---
+>                 if (floatValue > 3) {
+62a63,64
+>                 if (floatValue == 1) {return @"Auto";}
+>                 if (floatValue == 2) {return @"Steady";}
+130c132
+<                 if (floatValue) {
+---
+>                 if (floatValue > 3) {
+132a135,136
+>                 if (floatValue == 1) {return @"Auto";}
+>                 if (floatValue == 2) {return @"Steady";}
+168c172
+< @end
+\ No newline at end of file
+---
+> @end

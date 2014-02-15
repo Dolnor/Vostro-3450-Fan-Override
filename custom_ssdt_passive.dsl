@@ -29,7 +29,6 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
     External (\_SB_.PCI0.LPCB.EC0_.DTS1, IntObj) // Digital Thermal Sensor on CPU Heatsink
     External (\_SB_.PCI0.LPCB.EC0_.DTS2, IntObj) // Digital Thermal Sensor on PCH Die
     External (\_SB_.PCI0.LPCB.EC0_.OTPC, IntObj) // Optical Thermocouple CPU Proximity
-    External (\_SB_.PCI0.LPCB.EC0_.ACIN, IntObj) // AC Adapter Status (0 - Battery, 1 - AC)
     External (\_SB_.PCI0.LPCB.EC0_.MUT0)         // EC Mutex (Lock)
 
     Scope (\_SB.PCI0.LPCB)
@@ -49,7 +48,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 "Mainboard", 
                 "TSYS"
             })
-            Method (TCPU, 0, NotSerialized) // CPU Hetsink Sensor
+            Method (TCPP, 0, NotSerialized) // CPU Hetsink Sensor
             {
                 Acquire (^^EC0.MUT0, 0xFFFF)
                 Store (^^EC0.DTS1, Local0)
@@ -57,7 +56,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Return (Local0)
             }
 
-            Method (TCPP, 0, NotSerialized) // CPU Proximity Sensor
+            Method (TCPU, 0, NotSerialized) // CPU Proximity Sensor
             {
                 Acquire (^^EC0.MUT0, 0xFFFF)
                 Store (^^EC0.OTPC, Local0)
@@ -81,12 +80,14 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Return (Local0)
             }
 
-            Name (TACH, Package (0x02)     // Define settings for ACPI Tachometer Sensors
+            Name (TACH, Package (0x04)     // Define settings for ACPI Tachometer Sensors
             {
+                "Fan Control", 
+                "FAN0",
                 "System Fan", 
-                "FAN0"
+                "FAN1"
             })
-            Method (FAN0, 0, NotSerialized) // System Fan Sensor
+            Method (FAN1, 0, NotSerialized) // System Fan Sensor
             {
                 Acquire (^^EC0.MUT0, 0xFFFF)
                 Store (^^EC0.FANH, Local0)
@@ -114,6 +115,23 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 }
 
                 Return (Local0)
+            }
+            
+            Method (FAN0, 0, NotSerialized)
+            {
+                Acquire (^^EC0.MUT0, 0xFFFF)
+                Store (^^EC0.TCTL, Local0)
+                Release (^^EC0.MUT0)
+                If (LEqual (Local0, One))
+                {
+                    Return (One)
+                }
+
+                If (LEqual (Local0, Zero))
+                {
+                    Return (0x02)
+                }
+                Return (0x00)
             }
 
             Name (VOLT, Package (0x02)        // Define settings for ACPI Voltage Sensors
@@ -161,10 +179,9 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
             Name (INVL, 0x3E8)            // Set Polling interval 1sec
             Name (TOUT, 0x00)             // Set Polling timeout  0sec (continuous polling)
             Name (LOGG, 0x00)             // Disable Console logging of values returned by methods
-            Name (LIST, Package (0x03)    // Define methods for ACPI polling
+            Name (LIST, Package (0x02)    // Define methods for ACPI polling
             {
-                "TAVG",
-                "ADST", 
+                "TAVG", 
                 "FCTL"
             })
             
@@ -173,14 +190,20 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 /* 0000 */    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
                 /* 0008 */    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
             })
-            
             Name (FIDX, Zero)                 // Current index in buffer above
             Name (FNUM, Zero)                 // Number of entries in above buffer to count in avg
             Name (FSUM, Zero)                 // Current sum of entries in buffer
             
+            /* 
+             * Calculate average temperature reading of CPU Heatsink from 16 iterrations
+             * Originally coded for HP ProBook fan control override via custom thermal table
+             * 
+             * Calculus method courtesy of RehabMan 
+             */
+            
             Method (TAVG, 0, Serialized)
             {
-                Store (^^SMCD.TCPU(), Local0) // Store CPU Heatsink temp sa Local0
+                Store (^^SMCD.TCPP(), Local0) // Store CPU Heatsink temp sa Local0
               
                 // Calculate average temperature
                 Add (Local0, FSUM, Local1)
@@ -209,34 +232,31 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Divide (Local1, Local2, , Local0) // Local0 is now average temp
                 Return (Local0) // Return average temp
             }
+
+            /* 
+             * Switches between Fan Automatic and Manual Override control modes based on CPU Heatsink temp
+             * Method to control the Fan discovered by playing around with ECRAM in RWE and analyzing ACPI table data
+             * 
+             * Switching method courtesy of TimeWalker 
+             */
             
-            Method (ADST, 0, Serialized) // Return AC Adapter Status
-            {
-                Acquire (^^EC0.MUT0, 0xFFFF)
-                Store (^^EC0.ACIN, Local0)
-                Release (^^EC0.MUT0)
-                Return (Local0)
-            }
-                
             Method (FCTL, 0, NotSerialized)         // Fan Control Method
             {
                 Store (TAVG (), Local0)             // Store average temp as Local0
-                Store (ADST(), Local3)              // Store AC adapter status
-                Store (^^SMCD.FAN0(), Local2)       // Store fan speed (both high and low order) as Local2
+                Store (^^SMCD.FAN1 (), Local2)      // Store Fan Speed as Local2
                 Acquire (^^EC0.MUT0, 0xFFFF)        // Set EC Lock
                 Store (^^EC0.FLVL, Local1)          // Store Fan Level as Local1
                 Release (^^EC0.MUT0)                // Release EC Lock
-
-                If (LAnd (LNotEqual (Local1, 0xFF), LNotEqual(Local3, Zero)))   // If Fan Mode is Auto and if not running on battery
+                If (LNotEqual (Local1, 0xFF))       // If Fan Mode is Auto
                 {
-                    If (LAnd (LLessEqual (Local0, 0x33), LEqual (Local1, One))) // If avg temp is below 51C and Fan Level is 1 (~3700 RPM)
+                    If (LAnd (LLessEqual (Local0, 0x33), LEqual (Local1, One))) // If avg temp is below 51C and Fan Level is 1 (2700-3700 RPM)
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
                         Store (Zero, ^^EC0.FLVL)     // Set Fan Level to 0 to make Fan drop speed gradually
                         Release (^^EC0.MUT0)         // Release EC Lock
                     }
                     
-                    If (LAnd (LLessEqual (Local0, 0x34), LLessEqual(Local2, 0xBB8))) // If avg temp is below 52C and Fan RPM is lower than 2850 RPM
+                    If (LAnd (LLessEqual (Local0, 0x34), LEqual (Local2, Zero))) // If avg temp is below 52C and Fan went Off
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
                         Store (Zero, ^^EC0.TCTL)     // Set Fan Mode as Manual
@@ -245,7 +265,7 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 }
                 Else                                 // If Fan Mode is Manual
                 {
-                    If (LGreaterEqual (Local0, 0x3E)) // If avg temp is higher than 62C
+                    If (LAnd (LGreaterEqual (Local0, 0x40), LEqual (Local2, Zero))) // If avg temp is higher than 64C and Fan RPM high order is 0 (Fan is Off)
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF) // Set EC Lock
                         Store (One, ^^EC0.TCTL)      // Set Fan Mode as Automatic
@@ -258,3 +278,4 @@ DefinitionBlock ("SSDT-4.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
         }
     }
 }
+
