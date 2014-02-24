@@ -7,33 +7,24 @@ There is no ideal method for controlling Fan on this machines even under Windows
 
 ### How it works
 
-First things firs - it is advised to have a DSDT patch for _PTS method.
-
-    		Method (_PTS, 1, NotSerialized)  // _PTS: Prepare To Sleep
-    		{	
-        		Store (Zero, P80D)
-        		P8XH (Zero, Arg0)
-        		Store (One, MY9F)
-        		Store (One, \_SB.PCI0.LPCB.EC0.TCTL)
-
-Setting TCTL bit upon every power mode transition is necessary to restore automatic mode upon wake.. but this is not mandatory, because the algorithm will figure that the fan speed is 0 and auto control is disabled, so it will re-enabled the auto control as soon as you wake.
-
 * Passive Profile (can work on battery):
-- If average temperature is lower than 51C and fan is already on LVL1 it makes the fan drop speed gradually until it turn off. If fan has turned off the automatic mode is disabled and steady speed mode is activated. 
+- If average temperature is lower than SAFE temperature and fan is already on LVL1 it makes the fan drop speed gradually until it turn off. If fan has turned off the automatic mode is disabled and steady speed mode is activated. 
 
-- When average temperature reaches 64C automatic control mode is restored to cool down the machine.
-
+- When average temperature reaches TRIP temperature automatic control mode is restored to cool down the machine.
 
 There is not way to set desired fan speed, it's done through Dell's proprietary protocol, which creates huge amounts of lag when accessed externally. And even then the fan speed can only be set to two positions - 3700 or 4700 RPM.
 
 * Audible Profile (restricted to AC only):
-- If average temp is below 51C, fas is running at LVL1, and power source is AC adapter - makes the fan speed drop gradually.
+- If average temp is below SAFE, fas is running at LVL1, and power source is AC adapter - makes the fan speed drop gradually.
 
-- If fan speed has dropped below 300RPM mark (less audible) the fan is getting locked at this steady speed due to automatic mode override.
+- If fan speed has dropped below STDY RPM mark (don’t go below 3000RPM) the fan is getting locked at this steady speed due to automatic mode override.
 
-- When average temperature has reached 62C or AC adapter is disconnected or fan steady fan speed locked at a higher speed than requested - reenable automatic mode.
+- When average temperature has reached TRIP tempe or AC adapter is disconnected or fan steady fan speed locked at a higher speed than requested - reenable automatic mode.
 
 
 ### Additions
 
-By using HWMonitor and FakeSMC (with plugins) from bins.zip you will be able to monitor if fan is locked at a steady speed or bios has control over fan. The Fan Control entry under Fans & Pumps will say the status - either Auto or Steady.
+By using HWMonitor and FakeSMC (with plugins) from bins.zip you will be able to monitor if fan is locked at a steady speed or bios has control over fan. 
+The Fan Control entry under Fans & Pumps will say the status - either Auto or Steady.
+
+To switch Fan Control profiles press on HWMonitor menubar icon, select the gear icon (settings) and go to ACPIProbe Profile. By default Auotmatic profile is set at every boot, you can change this by setting the respective profile (PROx) number in ACTV variable.
