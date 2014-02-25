@@ -690,8 +690,7 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
                     // we wait for EC to set LED 
                     Sleep(250) 
                     // and if there was no action from EC (special mode or mouse connected) we toggle it
-                    If (LOr (LAnd (LEqual(Arg0, 0x01), LEqual(Local0, 0x00)), 
-                         LAnd (LEqual(Arg0, 0x00), LEqual(Local0, 0x01))))
+                    If (LNotEqual(Arg0, Local0))
                     {
                         Acquire (^^EC0.MUT0, 0xFFFF)
                         Store (Arg0, ^^EC0.TLED)

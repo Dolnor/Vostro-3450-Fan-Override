@@ -20,6 +20,7 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
 {
 
     External (_SB_.PCI0.LPCB, DeviceObj)
+    External (_SB_.PCI0.LPCB.EC0_, DeviceObj)
     External (_SB_.PCI0.LPCB.EC0_.ACIN, IntObj) // AC Adapter Status Bit
     External (_SB_.PCI0.LPCB.EC0_.DTS1, IntObj) // Digital Thermal Sensor on CPU Heatsink
     External (_SB_.PCI0.LPCB.EC0_.DTS2, IntObj) // Digital Thermal Sensor on PCH Die
@@ -32,6 +33,8 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
     External (_SB_.PCI0.LPCB.EC0_.SOT1, IntObj) // Battery Voltage (originally 1x16 bit)
     External (_SB_.PCI0.LPCB.EC0_.SYST, IntObj) //
     External (_SB_.PCI0.LPCB.EC0_.TCTL, IntObj) // Tachometer Control
+    
+    External (_SB_.PCI0.LPCB.EC0_.ECRM) // EC 0x100 byte Memory Space
 
     Scope (\_SB.PCI0.LPCB)
     {
@@ -40,16 +43,18 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
             Name (_HID, "MON0000")       // _HID: Hardware ID
             Name (_CID, "acpi-monitor")  // _CID: Compatible ID
             Name (KLVN, Zero)            // Don't use Kelvin degrees, use Celsius instead
-            Name (TEMP, Package (0x08)   // Define settings for ACPI Temp Sensors
+            Name (TEMP, Package ()   // Define settings for ACPI Temp Sensors
             {
                 "CPU Heatsink", 
                 "TCPU", 
                 "CPU Proximity", 
                 "TCPP", 
-                "PCH Die", 
+                "PCH Proximity", 
                 "TPCH", 
                 "Mainboard", 
-                "TSYS"
+                "TSYS",
+                "Memory Proximity",
+                "TMEM"
             })
             Method (TCPP, 0, NotSerialized) // CPU Proximity Sensor
             {
@@ -75,10 +80,18 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Return (Local0)
             }
 
-            Method (TSYS, 0, NotSerialized) // Motherboard Sensor
+            Method (TSYS, 0, NotSerialized) // Motherboard Ambient Sensor
             {
                 Acquire (^^EC0.MUT0, 0xFFFF)
                 Store (^^EC0.SYST, Local0)
+                Release (^^EC0.MUT0)
+                Return (Local0)
+            }
+            
+            Method (TMEM, 0, NotSerialized) // Memory Compartment Ambient Sensor
+            {
+                Acquire (^^EC0.MUT0, 0xFFFF)
+                Store (^^EC0.MCPT, Local0)
                 Release (^^EC0.MUT0)
                 Return (Local0)
             }
@@ -351,6 +364,16 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Release (^^EC0.MUT0)
                 Return ("Reset")
             }
+        }
+    }
+
+    Scope (\_SB.PCI0.LPCB.EC0)
+    {
+        // read memory ambient temperature          
+        Field (ECRM, ByteAcc, Lock, Preserve)
+        {
+            Offset (0x5C), 
+            MCPT,   8, 
         }
     }
 }
