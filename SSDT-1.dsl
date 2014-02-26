@@ -343,7 +343,9 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
 
                     If (LAnd (LLessEqual (Local0, SAFE), LEqual (Local2, Zero))) // if fan has turned off completely
                     {
-                        FRST () // override automatic control
+                        Acquire (^^EC0.MUT0, 0xFFFF)
+                        Store (Zero, ^^EC0.TCTL) // clear fan tachometer control bit and override automatic control
+                        Release (^^EC0.MUT0)
                     }
                 }
                 Else // if ec fan control is overriden
