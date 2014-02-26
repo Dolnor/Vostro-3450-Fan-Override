@@ -20,7 +20,6 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
 {
 
     External (_SB_.PCI0.LPCB, DeviceObj)
-    External (_SB_.PCI0.LPCB.EC0_, DeviceObj)
     External (_SB_.PCI0.LPCB.EC0_.ACIN, IntObj) // AC Adapter Status Bit
     External (_SB_.PCI0.LPCB.EC0_.DTS1, IntObj) // Digital Thermal Sensor on CPU Heatsink
     External (_SB_.PCI0.LPCB.EC0_.DTS2, IntObj) // Digital Thermal Sensor on PCH Die
@@ -30,11 +29,10 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
     External (_SB_.PCI0.LPCB.EC0_.MUT0, MutexObj) // EC Mutex (Lock)
     External (_SB_.PCI0.LPCB.EC0_.OTPC, IntObj) // Optical Thermocouple CPU Heatsink
     External (_SB_.PCI0.LPCB.EC0_.SOT0, IntObj) // Motherboard Ambient Temperature
+    External (_SB_.PCI0.LPCB.EC0_.MCPT, IntObj) // Memory Compartment Temperature
     External (_SB_.PCI0.LPCB.EC0_.SOT1, IntObj) // Battery Voltage (originally 1x16 bit)
     External (_SB_.PCI0.LPCB.EC0_.SYST, IntObj) //
     External (_SB_.PCI0.LPCB.EC0_.TCTL, IntObj) // Tachometer Control
-    
-    External (_SB_.PCI0.LPCB.EC0_.ECRM) // EC 0x100 byte Memory Space
 
     Scope (\_SB.PCI0.LPCB)
     {
@@ -366,16 +364,6 @@ DefinitionBlock ("SSDT-1.aml", "SSDT", 2, "DELL ", "PollDevc", 0x00001000)
                 Release (^^EC0.MUT0)
                 Return ("Reset")
             }
-        }
-    }
-
-    Scope (\_SB.PCI0.LPCB.EC0)
-    {
-        // read memory ambient temperature          
-        Field (ECRM, ByteAcc, Lock, Preserve)
-        {
-            Offset (0x5C), 
-            MCPT,   8, 
         }
     }
 }

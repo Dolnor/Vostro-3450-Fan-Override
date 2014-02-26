@@ -89,7 +89,6 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
     External (_SB_.PCI0.IGPU._DOS, MethodObj)
     External (_SB_.PCI0.LPCB, DeviceObj)
     External (_SB_.PCI0.LPCB.EC0_, DeviceObj)
-    External (_SB_.PCI0.LPCB.EC0_.ECRM)
     External (_SB_.PCI0.LPCB.EC0_.KBBL, IntObj)
     External (_SB_.PCI0.LPCB.EC0_.MUT0, MutexObj)
     External (_SB_.PCI0.LPCB.EC0_._O80, MethodObj)
@@ -701,12 +700,14 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
 
         Scope (\_SB.PCI0.LPCB.EC0)
         {
-            // allow to get and set touchpad LED status from EC RAM 0x45 bit 7           
-            Field (ECRM, ByteAcc, Lock, Preserve)
-            {
-                Offset (0x45), 
+            // allow to get and set touchpad LED status from EC RAM 0x45 bit 7
+            OperationRegion (ECSP, EmbeddedControl, 0x45, 0x0018)           
+            Field (ECSP, ByteAcc, Lock, Preserve)
+            { 
                     ,   7, 
                 TLED,   1, 
+                Offset (0x17), // 0x5C counting from 0x00 offset
+                MCPT,   8,     // memory compartment temp
             }
             // this will be invoked when Fn+F2 is pressed and will call original query in DSDT
             Method (_Q8C, 0, NotSerialized)  // _Qxx: EC Query
