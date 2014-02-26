@@ -45,7 +45,7 @@ If you need kernel extension patches they are generally the same in both plist, 
 * Patches in ITL_FL are meant for Fresco Logic FL1009 USB 3.0 host controller
 
 
-## Supplemental ACPI table includes the following fixes which allows DELL hardware to work properly in OSX:
+### Supplemental ACPI table includes the following fixes which allows DELL hardware to work properly in OSX:
 
 - PNLF device with additional brightness control mechanism for subtle screen backlight adjustments
 
