@@ -28,3 +28,63 @@ By using HWMonitor and FakeSMC (with plugins) from bins.zip you will be able to 
 The Fan Control entry under Fans & Pumps will say the status - either Auto or Steady.
 
 To switch Fan Control profiles press on HWMonitor menubar icon, select the gear icon (settings) and go to ACPIProbe Profile. By default Auotmatic profile is set at every boot, you can change this by setting the respective profile (PROx) number in ACTV variable.
+
+
+## Supplemental ACPI table for OSX 
+
+To use both fan control and monitoring features as well as supplemental ACPI table (meant for device injection and device behavior corrections) you need to apply set of DSDT patches to BIOS DSDT via Clover patches. Regardless of what your motherboard is (AMD SG or Intel only) see these plists for reference:
+
+* For Inspiron series machines use ACPI/DSDT/Patches from dsdt_and_kext_patches_AMD_NEC.plist
+
+* For Vostro series machines use ACPI/DSDT/Patches from dsdt_and_kext_patches_ITL_FL.plist 
+
+If you need kernel extension patches they are generally the same in both plist, with the exception of USB3.0 related patches. 
+
+* Patches in AMD_NEC are meant for NEC/Renesas USB 3.0 host controllers 
+
+* Patches in ITL_FL are meant for Fresco Logic FL1009 USB 3.0 host controller
+
+
+## Supplemental ACPI table includes the following fixes which allows DELL hardware to work properly in OSX:
+
+- PNLF device with additional brightness control mechanism for subtle screen backlight adjustments
+
+- Scaling check to fix soft reboot with full brightness because BIOS is unable to determine last brightness used after rebooting from OSX
+
+- ADP1 power resources for wake defined in order to allow AppleACAdapter to attach (essentially obsolete for ACPIBatteryManager 1.52 and up)
+
+- Memory Controller Hub definition 
+
+- Intel Management Engine definition
+
+- EHCI fixes to allow proper sleep/wake functionality
+
+- LPCB Bridge definition to reduce processor temperatures
+
+- PS2K exposed to VoodooPS2 as OEM make DELL, includes range of fixes that are needed for inverted (special) keyboard mode when media keys are used without pressing Fn
+
+- PS2M defined method to toggle touchpad LED state when VoodooPS2 disable the surface
+
+- Missing EC registers added to toggle touchpad LED and for memory temperature monitoring
+
+- Certain EC queries are overridden to generate fake PS2 scancodes for VoosooPS2 to intercept
+
+- Intel SMBUS Definition as per Macbook reference
+
+- Root Port #1 (ARPT) has AzureWave AW-NB290 AirPort card defined
+
+- Root Port #3 (XHC1) has Fresco Logic (change name accordingly) USB3.0 controller defined
+
+- Root Port #5 (GIGE) has Gigabit Ethernet (change name accordingly) controller defined
+
+- SATA interface has Apple subsystem ID defined
+
+- IGPU BAR1 address declaration for proper backlight control, shared memory defined
+
+- (AMD models only) AMD SwitchableGraphics disabled to conserve battery power and properly wake display
+
+- (Intel models only) Additional Intel IGPU device injections
+
+- HDEF layout and supplemental property injection for HDMI audio pass-through
+
+- DTGP method defined

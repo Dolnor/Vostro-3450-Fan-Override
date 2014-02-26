@@ -10,7 +10,7 @@
 		<array>
 			<dict>
 				<key>Comment</key>
-				<string>native Broadcom BCM43xx AirPort</string>
+				<string>Broadcom BCM43xx AirPort</string>
 				<key>Name</key>
 				<string>AirPortBrcm4360</string>
 				<key>Find</key>
@@ -20,7 +20,7 @@
 			</dict>
 			<dict>
 				<key>Comment</key>
-				<string>HDMI+VGA+Brightness</string>
+				<string>HDMI+VGA</string>
 				<key>Name</key>
 				<string>AppleIntelSNBGraphicsFB</string>
 				<key>Find</key>
@@ -253,6 +253,8 @@
 		</dict>
 		<key>SSDT</key>
 		<dict>
+			<key>DropOem</key>
+			<false/>
 			<key>Generate</key>
 			<dict>
 				<key>PStates</key>

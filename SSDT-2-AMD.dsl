@@ -912,7 +912,7 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
                         "model", 
                         Buffer (0x26)
                         {
-                            "Fresco Logic USB 3.0 Host Controller"
+                            "NEC Renesas USB 3.0 Host Controller"
                         }, 
 
                         "AAPL,current-available", 
@@ -957,7 +957,7 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
                         "model", 
                         Buffer (0x16)
                         {
-                            "Realtek RTL8111/8168B"
+                            "Realtek RTL8168/8101E"
                         }
                     }, Local0)
                 DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
