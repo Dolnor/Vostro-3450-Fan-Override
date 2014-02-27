@@ -305,6 +305,14 @@
 					<key>Replace</key>
 					<data>X084Qw==</data>
 				</dict>
+				<dict>
+					<key>Comment</key>
+					<string>QAF -&gt; OAF</string>
+					<key>Find</key>
+					<data>X1FBRg==</data>
+					<key>Replace</key>
+					<data>X09BRg==</data>
+				</dict>
 			</array>
 			<key>Debug</key>
 			<false/>

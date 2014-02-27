@@ -16,6 +16,7 @@ Keyboard:
 							<string>e0f1=90;Call brigthess up w RKA1 for special mode</string>
 							<string>e0f2=91;Call brigthess down w RKA2 for special mode</string>
 							<string>e06e=70;Map vidmirror key for special mode default is adb90</string>
+							<string>e009=83;Map Dell Support Center to Launchpad</string>
 						</array>
 						<key>Breakless PS2</key>
 						<array>

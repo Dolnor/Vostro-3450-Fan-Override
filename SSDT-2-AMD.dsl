@@ -77,6 +77,14 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
 					<key>Replace</key>
 					<data>X084Qw==</data>
 				</dict>
+				<dict>
+					<key>Comment</key>
+					<string>QAF -&gt; OAF</string>
+					<key>Find</key>
+					<data>X1FBRg==</data>
+					<key>Replace</key>
+					<data>X09BRg==</data>
+				</dict>
     */
 
     External (_SB_.ADP1, DeviceObj)
@@ -96,7 +104,8 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
     External (_SB_.PCI0.LPCB.EC0_._O80, MethodObj)
     External (_SB_.PCI0.LPCB.EC0_._O81, MethodObj) 
     External (_SB_.PCI0.LPCB.EC0_._O8A, MethodObj) 
-    External (_SB_.PCI0.LPCB.EC0_._O8C, MethodObj) 
+    External (_SB_.PCI0.LPCB.EC0_._O8C, MethodObj)
+    External (_SB_.PCI0.LPCB.EC0_._OAF, MethodObj)  
     External (_SB_.PCI0.LPCB.PS2K, DeviceObj)
     External (_SB_.PCI0.LPCB.PS2M, DeviceObj)
     External (_SB_.PCI0.RP01.PXSX, DeviceObj)
@@ -738,6 +747,13 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
                 Notify (PS2K, 0x020C)
                 Notify (PS2K, 0x028C)
                 \_SB.PCI0.LPCB.EC0._O8A ()
+            }
+            // this will be called when Dell Support Center is pressed
+            Method (_QAF, 0, NotSerialized)  // _Qxx: EC Query
+            {
+                Notify (PS2K, 0x0209)
+                Notify (PS2K, 0x0289)
+                \_SB.PCI0.LPCB.EC0._OAF ()
             }
         }
         
