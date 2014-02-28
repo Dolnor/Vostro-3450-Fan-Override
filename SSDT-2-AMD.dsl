@@ -663,7 +663,8 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             // brightness up event
             Method (RKA1, 1, NotSerialized)
             {
-                If(Not(Arg0))
+                If (Arg0){}
+                Else
                 {
                     \_SB.PCI0.LPCB.EC0._O80 ()
                 }
@@ -671,7 +672,8 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             // brightness down event
             Method (RKA2, 1, NotSerialized)
             {
-                If(Not(Arg0))
+                If (Arg0){}
+                Else
                 {
                     \_SB.PCI0.LPCB.EC0._O81 ()
                 }
