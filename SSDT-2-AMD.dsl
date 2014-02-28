@@ -100,7 +100,6 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
     External (_SB_.PCI0.LPCB, DeviceObj)
     External (_SB_.PCI0.LPCB.EC0_, DeviceObj)
     External (_SB_.PCI0.LPCB.EC0_.KBBL, IntObj)
-    External (_SB_.PCI0.LPCB.EC0_.MUT0, MutexObj)
     External (_SB_.PCI0.LPCB.EC0_._O80, MethodObj)
     External (_SB_.PCI0.LPCB.EC0_._O81, MethodObj) 
     External (_SB_.PCI0.LPCB.EC0_._O8A, MethodObj) 
@@ -663,8 +662,7 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             // brightness up event
             Method (RKA1, 1, NotSerialized)
             {
-                If (Arg0){}
-                Else
+                If (LNot(Arg0))
                 {
                     \_SB.PCI0.LPCB.EC0._O80 ()
                 }
@@ -672,8 +670,7 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             // brightness down event
             Method (RKA2, 1, NotSerialized)
             {
-                If (Arg0){}
-                Else
+                If (LNot(Arg0))
                 {
                     \_SB.PCI0.LPCB.EC0._O81 ()
                 }
@@ -683,7 +680,6 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             {
                 If (Arg0)
                 {
-                    Acquire (^^EC0.MUT0, 0xFFFF)
                     Store (^^EC0.KBBL, Local0)
                     If (LEqual(Local0, Zero))
                     {
@@ -697,7 +693,6 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
                     {
                         Store (0x00, ^^EC0.KBBL)
                     }
-                    Release (^^EC0.MUT0)
                     \_SB.PCI0.LPCB.EC0._O8A ()
                 }
             }
@@ -706,20 +701,22 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
         Scope (\_SB.PCI0.LPCB.PS2M)
         {
             // method to toggle led status with vodoops2 1.8.11 and later
-            Method (TPDN, 3, NotSerialized)
+            Method (TPDN, 1, NotSerialized)
             {
-                    Acquire (^^EC0.MUT0, 0xFFFF)
-                    Store (^^EC0.TLED, Local0)
-                    Release (^^EC0.MUT0)
-                    // we wait for EC to set LED 
-                    Sleep(250) 
-                    // and if there was no action from EC (special mode or mouse connected) we toggle it
-                    If (LNotEqual(Arg0, Local0))
-                    {
-                        Acquire (^^EC0.MUT0, 0xFFFF)
-                        Store (Arg0, ^^EC0.TLED)
-                        Release (^^EC0.MUT0)
-                    }
+                // we wait for EC to set LED 
+                Sleep(200) 
+                Store (^^EC0.TLED, Local0)
+                    
+                // and if there was no action from EC (special mode or mouse connected) we toggle it
+                If (LAnd(LNotEqual(Arg0, Local0), LNotEqual(Arg0,0xFFFF)))
+                {
+                    Store (Arg0, ^^EC0.TLED)
+                }
+                // if shutdown or restart is issued resed the LED if it's on, requires VoodooPS2Daemon 
+                If (LAnd(LEqual (Local0, One), LEqual(Arg0, 0xFFFF)))
+                {
+                    Store (Zero, ^^EC0.TLED)
+                }
             }
         }
 
