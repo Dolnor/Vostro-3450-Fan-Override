@@ -653,39 +653,51 @@ DefinitionBlock ("SSDT-2.aml", "SSDT", 2, "DELL ", "SsdtIGPU", 0x00001000)
             }
             
             // wireless radio toggle switch
-            Method (RKA0, 0, NotSerialized)
+            Method (RKA0, 1, NotSerialized)
             {
-                \_SB.PCI0.LPCB.EC0._O8C ()
+                If (Arg0)
+                {
+                    \_SB.PCI0.LPCB.EC0._O8C ()
+                }
             }
             // brightness up event
-            Method (RKA1, 0, NotSerialized)
+            Method (RKA1, 1, NotSerialized)
             {
-                \_SB.PCI0.LPCB.EC0._O80 ()
+                If(Not(Arg0))
+                {
+                    \_SB.PCI0.LPCB.EC0._O80 ()
+                }
             }
             // brightness down event
-            Method (RKA2, 0, NotSerialized)
+            Method (RKA2, 1, NotSerialized)
             {
-                \_SB.PCI0.LPCB.EC0._O81 ()
+                If(Not(Arg0))
+                {
+                    \_SB.PCI0.LPCB.EC0._O81 ()
+                }
             }
             // control keyboard backlight in special f-key mode
-            Method (RKA3, 0, NotSerialized)
+            Method (RKA3, 1, NotSerialized)
             {
-                Acquire (^^EC0.MUT0, 0xFFFF)
-                Store (^^EC0.KBBL, Local0)
-                If (LEqual(Local0, Zero))
+                If (Arg0)
                 {
-                    Store (0x01, ^^EC0.KBBL)
+                    Acquire (^^EC0.MUT0, 0xFFFF)
+                    Store (^^EC0.KBBL, Local0)
+                    If (LEqual(Local0, Zero))
+                    {
+                        Store (0x02, ^^EC0.KBBL)
+                    }
+                    If (LEqual(Local0, 0x02))
+                    {
+                        Store (0x01, ^^EC0.KBBL)
+                    }
+                    If (LEqual(Local0, One))
+                    {
+                        Store (0x00, ^^EC0.KBBL)
+                    }
+                    Release (^^EC0.MUT0)
+                    \_SB.PCI0.LPCB.EC0._O8A ()
                 }
-                If (LEqual(Local0, One))
-                {
-                    Store (0x02, ^^EC0.KBBL)
-                }
-                If (LEqual(Local0, 0x02))
-                {
-                    Store (0x00, ^^EC0.KBBL)
-                }
-                Release (^^EC0.MUT0)
-                \_SB.PCI0.LPCB.EC0._O8A ()
             }
         }
         
